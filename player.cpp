@@ -435,14 +435,7 @@ void init() {
 
     // Play the first track
     if (trackCount > 0) {
-        char trackPath[1024];
-        snprintf(trackPath, sizeof(trackPath), "%s", trackList[currentTrackIndex]);
-        music = Mix_LoadMUS(trackPath);
-        if (music) {
-            Mix_PlayMusic(music, -1);
-        } else {
-            printf("Error loading music: %s\n", Mix_GetError());
-        }
+        loadAndPlayMusic(currentTrackIndex);
     }
 }
 
