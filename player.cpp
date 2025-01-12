@@ -274,40 +274,69 @@ void handleKeyboardInput(SDL_Event *event) {
     }
 }
 
-// Handle gamepad input
 void handleGamepadInput() {
-    if (SDL_GameControllerGetButton(gamepad, SDL_CONTROLLER_BUTTON_A)) {
-        // Play/Pause
-        if (Mix_PlayingMusic()) {
-            Mix_PauseMusic();
-        } else {
-            Mix_ResumeMusic();
+    if (!gamepad) { return; }
+
+    // GAMEPAD_CONTROL_FULL: Right Stick X-axis for Next/Prev, Y-axis for Volume, Right Stick Click for Pause
+    if (GAMEPAD_CONTROL_FULL) {
+        if (SDL_GameControllerGetAxis(gamepad, SDL_CONTROLLER_AXIS_RIGHTX) > 8000) {
+            currentTrackIndex = (currentTrackIndex + 1) % trackCount;
+            loadAndPlayMusic(currentTrackIndex);
+        } else if (SDL_GameControllerGetAxis(gamepad, SDL_CONTROLLER_AXIS_RIGHTX) < -8000) {
+            currentTrackIndex = (currentTrackIndex - 1 + trackCount) % trackCount;
+            loadAndPlayMusic(currentTrackIndex);
+        }
+
+        if (SDL_GameControllerGetAxis(gamepad, SDL_CONTROLLER_AXIS_RIGHTY) > 8000) {
+            volume += 10;
+            if (volume > 128) volume = 128;
+            Mix_VolumeMusic(volume);
+        } else if (SDL_GameControllerGetAxis(gamepad, SDL_CONTROLLER_AXIS_RIGHTY) < -8000) {
+            volume -= 10;
+            if (volume < 0) volume = 0;
+            Mix_VolumeMusic(volume);
+        }
+
+        if (SDL_GameControllerGetButton(gamepad, SDL_CONTROLLER_BUTTON_RIGHTSTICK)) {
+            if (Mix_PlayingMusic()) {
+                Mix_PauseMusic();
+            } else {
+                Mix_ResumeMusic();
+            }
         }
     }
 
-    if (SDL_GameControllerGetButton(gamepad, SDL_CONTROLLER_BUTTON_RIGHTSHOULDER)) {
-        // Next track
-        currentTrackIndex = (currentTrackIndex + 1) % trackCount;
-        loadAndPlayMusic(currentTrackIndex);
+    // GAMEPAD_CONTROL_SIMPLE: Right Stick X-axis for Next/Prev
+    if (GAMEPAD_CONTROL_SIMPLE) {
+        if (SDL_GameControllerGetAxis(gamepad, SDL_CONTROLLER_AXIS_RIGHTX) > 8000) {
+            currentTrackIndex = (currentTrackIndex + 1) % trackCount;
+            loadAndPlayMusic(currentTrackIndex);
+        } else if (SDL_GameControllerGetAxis(gamepad, SDL_CONTROLLER_AXIS_RIGHTX) < -8000) {
+            currentTrackIndex = (currentTrackIndex - 1 + trackCount) % trackCount;
+            loadAndPlayMusic(currentTrackIndex);
+        }
     }
 
-    if (SDL_GameControllerGetButton(gamepad, SDL_CONTROLLER_BUTTON_LEFTSHOULDER)) {
-        // Previous track
-        currentTrackIndex = (currentTrackIndex - 1 + trackCount) % trackCount;
-        loadAndPlayMusic(currentTrackIndex);
+    // GAMEPAD_CONTROL_PAUSE: Right Stick Click only for Pause/Resume
+    if (GAMEPAD_CONTROL_PAUSE) {
+        if (SDL_GameControllerGetButton(gamepad, SDL_CONTROLLER_BUTTON_RIGHTSTICK)) {
+            if (Mix_PlayingMusic()) {
+                Mix_PauseMusic();
+            } else {
+                Mix_ResumeMusic();
+            }
+        }
     }
 
-    // Volume control
-    if (SDL_GameControllerGetButton(gamepad, SDL_CONTROLLER_BUTTON_DPAD_UP)) {
-        volume += 10;
-        if (volume > 128) volume = 128;
-        Mix_VolumeMusic(volume);
-    }
-
-    if (SDL_GameControllerGetButton(gamepad, SDL_CONTROLLER_BUTTON_DPAD_DOWN)) {
-        volume -= 10;
-        if (volume < 0) volume = 0;
-        Mix_VolumeMusic(volume);
+    // GAMEPAD_CONTROL_L1R1: L1 for Previous Track, R1 for Next Track
+    if (GAMEPAD_CONTROL_L1R1) {
+        if (SDL_GameControllerGetButton(gamepad, SDL_CONTROLLER_BUTTON_LEFTSHOULDER)) {
+            currentTrackIndex = (currentTrackIndex - 1 + trackCount) % trackCount;
+            loadAndPlayMusic(currentTrackIndex);
+        } else if (SDL_GameControllerGetButton(gamepad, SDL_CONTROLLER_BUTTON_RIGHTSHOULDER)) {
+            currentTrackIndex = (currentTrackIndex + 1) % trackCount;
+            loadAndPlayMusic(currentTrackIndex);
+        }
     }
 }
 
@@ -397,7 +426,7 @@ int main() {
             }
             handleKeyboardInput(&e);
         }
-        
+        handleGamepadInput();
         if (PLAY_MUSIC_INGAME) {
             Mix_VolumeMusic(INGAME_VOL);  // Set volume to INGAME_VOL
         } else {
@@ -412,7 +441,6 @@ int main() {
                 }
             }
         }
-        handleGamepadInput();
     }
 
     cleanup();
