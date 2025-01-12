@@ -65,7 +65,7 @@ char **getMusicFiles(const char *path, int *trackCount) {
             strstr(entry->d_name, ".wma") || 
             strstr(entry->d_name, ".flac") || 
             strstr(entry->d_name, ".ogg")) {
-                
+
             // Allocate space for the full path of the file
             char *fullPath = (char *)malloc(strlen(path) + strlen(entry->d_name) + 2);
             snprintf(fullPath, strlen(path) + strlen(entry->d_name) + 2, "%s/%s", path, entry->d_name);
@@ -92,7 +92,6 @@ void loadAndPlayMusic(int trackIndex) {
     }
 }
 
-
 void fadeVolume(int startVolume, int endVolume, int steps, int duration) {
     int volumeChange = (endVolume - startVolume) / steps;
     int delay = duration / steps;  // Time delay between each step
@@ -111,6 +110,37 @@ void loadSystemFont() {
     font = TTF_OpenFont(fontPath, 24);  // Load font with size 24
     if (font == NULL) {
         printf("Failed to load system font! SDL_ttf Error: %s\n", TTF_GetError());
+    }
+}
+
+void extractSongAndArtist(const char* filename, char* songName, char* artistName) {
+    // Find the last '/' to get the file name without the path
+    const char* fileName = strrchr(filename, '/');
+    if (!fileName) {
+        fileName = filename;  // No path, just the file name
+    } else {
+        fileName++;  // Skip past the '/'
+    }
+
+    // Find the position of the first '-' (assuming the file name format is "songname - artistname.extension")
+    const char* dashPos = strchr(fileName, '-');
+    if (dashPos) {
+        // Copy song name
+        size_t songLen = dashPos - fileName;
+        strncpy(songName, fileName, songLen);
+        songName[songLen] = '\0';
+
+        // Copy artist name (after the dash, until the extension)
+        const char* extPos = strchr(dashPos + 1, '.');
+        if (extPos) {
+            size_t artistLen = extPos - (dashPos + 1);
+            strncpy(artistName, dashPos + 1, artistLen);
+            artistName[artistLen] = '\0';
+        }
+    } else {
+        // If no '-' is found, treat the whole name as the song name
+        strcpy(songName, fileName);
+        artistName[0] = '\0'; // No artist name
     }
 }
 
@@ -153,6 +183,16 @@ void renderOSD(const char* songName, const char* artistName) {
     // Free the surface after creating the texture
     SDL_FreeSurface(textSurface);
 }
+
+void displayOSD() {
+    SDL_RenderClear(renderer);
+    // Render the OSD (text overlay)
+    if (osdTexture) {
+        SDL_RenderCopy(renderer, osdTexture, NULL, &osdRect);
+    }
+    SDL_RenderPresent(renderer);
+}
+
 
 // Function to handle keyboard input
 void handleKeyboardInput(SDL_Event *event) {
@@ -380,17 +420,17 @@ void init() {
         exit(1);
     }
 
-    window = SDL_CreateWindow("Music Player", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 640, 480, SDL_WINDOW_BORDERLESS);
-    if (!window) {
-        printf("Window could not be created! SDL Error: %s\n", SDL_GetError());
-        exit(1);
-    }
+    // window = SDL_CreateWindow("Music Player", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 640, 480, SDL_WINDOW_BORDERLESS);
+    // if (!window) {
+    //     printf("Window could not be created! SDL Error: %s\n", SDL_GetError());
+    //     exit(1);
+    // }
 
-    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-    if (!renderer) {
-        printf("Renderer could not be created! SDL Error: %s\n", SDL_GetError());
-        exit(1);
-    }
+    // renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+    // if (!renderer) {
+    //     printf("Renderer could not be created! SDL Error: %s\n", SDL_GetError());
+    //     exit(1);
+    // }
 
     // Load music files
     trackList = getMusicFiles(FOLDER_TO_PLAY, &trackCount);
@@ -410,7 +450,6 @@ void init() {
         }
     }
 
-
     // Play the first track
     if (trackCount > 0) {
         char trackPath[1024];
@@ -423,6 +462,7 @@ void init() {
         }
     }
 }
+
 void cleanup() {
     // Free resources
     SDL_DestroyTexture(osdTexture);
@@ -433,15 +473,6 @@ void cleanup() {
     SDL_Quit();
 }
 
-void displayOSD() {
-    SDL_RenderClear(renderer);
-    // Render the OSD (text overlay)
-    if (osdTexture) {
-        SDL_RenderCopy(renderer, osdTexture, NULL, &osdRect);
-    }
-    SDL_RenderPresent(renderer);
-}
-
 int main() {
     if (loadSettingsFromFile("../config.ini") != 0) {
         printf("Failed to load settings from config.ini\n");
@@ -450,10 +481,9 @@ int main() {
 
     init();
 
-    const char* songName = "Song Title";
-    const char* artistName = "Artist Name";
-
-    renderOSD(songName, artistName); 
+    // const char* songName = "Song Title";
+    // const char* artistName = "Artist Name";
+    // renderOSD(songName, artistName); 
 
     // Main loop
     SDL_Event e;
