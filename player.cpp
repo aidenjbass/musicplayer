@@ -45,7 +45,7 @@ SDL_Renderer *renderer = NULL;
 SDL_Window *window = NULL;
 SDL_Texture *osdTexture = NULL;
 SDL_Rect osdRect;
-int screenWidth = 640, screenHeight = 480; // Adjust to your screen size
+int screenWidth = 640, screenHeight = 480;
 
 char **getMusicFiles(const char *path, int *trackCount) {
     DIR *dir = opendir(path);
@@ -59,22 +59,25 @@ char **getMusicFiles(const char *path, int *trackCount) {
     *trackCount = 0;
 
     while ((entry = readdir(dir)) != NULL) {
-        if (entry->d_type == DT_REG) {
-            // Check if the file matches the allowed file types
-            if (strstr(entry->d_name, ".mp3") || strstr(entry->d_name, ".wav") || strstr(entry->d_name, ".ogg")) {
-                // Create the full path to the file
-                char *fullPath = (char *)malloc(strlen(path) + strlen(entry->d_name) + 2);
-                snprintf(fullPath, strlen(path) + strlen(entry->d_name) + 2, "%s/%s", path, entry->d_name);
-                files[*trackCount] = fullPath;
-                (*trackCount)++;
-            }
+        if (strstr(entry->d_name, ".mp3") || 
+            strstr(entry->d_name, ".mp4") || 
+            strstr(entry->d_name, ".wav") || 
+            strstr(entry->d_name, ".wma") || 
+            strstr(entry->d_name, ".flac") || 
+            strstr(entry->d_name, ".ogg")) {
+                
+            // Allocate space for the full path of the file
+            char *fullPath = (char *)malloc(strlen(path) + strlen(entry->d_name) + 2);
+            snprintf(fullPath, strlen(path) + strlen(entry->d_name) + 2, "%s/%s", path, entry->d_name);
+
+            // Add the file to the list
+            files[*trackCount] = fullPath;
+            (*trackCount)++;
         }
     }
-
     closedir(dir);
     return files;
 }
-
 
 // Function to load and play music from a given track list
 void loadAndPlayMusic(int trackIndex) {
@@ -83,7 +86,7 @@ void loadAndPlayMusic(int trackIndex) {
     }
     music = Mix_LoadMUS(trackList[trackIndex]);
     if (music) {
-        Mix_PlayMusic(music, -1); // Loop indefinitely
+        Mix_PlayMusic(music, -1);
     } else {
         printf("LAP Error loading music: %s\n", Mix_GetError());
     }
@@ -390,7 +393,7 @@ void init() {
     }
 
     // Load music files
-    trackList = getMusicFiles(FOLDER_TO_PLAY, &trackCount);  // Replace with actual folder path
+    trackList = getMusicFiles(FOLDER_TO_PLAY, &trackCount);
     if (trackCount == 0) {
         printf("No music files found!\n");
         exit(1);
@@ -401,7 +404,6 @@ void init() {
         srand(time(NULL));  // Seed the random number generator
         for (int i = trackCount - 1; i > 0; i--) {
             int j = rand() % (i + 1);
-            // Swap the elements
             char *temp = trackList[i];
             trackList[i] = trackList[j];
             trackList[j] = temp;
@@ -415,7 +417,7 @@ void init() {
         snprintf(trackPath, sizeof(trackPath), "%s", trackList[currentTrackIndex]);
         music = Mix_LoadMUS(trackPath);
         if (music) {
-            Mix_PlayMusic(music, -1);  // Play looped music
+            Mix_PlayMusic(music, -1);
         } else {
             printf("Error loading music: %s\n", Mix_GetError());
         }
@@ -432,14 +434,12 @@ void cleanup() {
 }
 
 void displayOSD() {
-    SDL_RenderClear(renderer);  // Clear the screen
-
+    SDL_RenderClear(renderer);
     // Render the OSD (text overlay)
     if (osdTexture) {
-        SDL_RenderCopy(renderer, osdTexture, NULL, &osdRect);  // Copy the texture to the renderer
+        SDL_RenderCopy(renderer, osdTexture, NULL, &osdRect);
     }
-
-    SDL_RenderPresent(renderer);  // Present the renderer
+    SDL_RenderPresent(renderer);
 }
 
 int main() {
@@ -453,7 +453,7 @@ int main() {
     const char* songName = "Song Title";
     const char* artistName = "Artist Name";
 
-    renderOSD(songName, artistName);  // Prepare the overlay text
+    renderOSD(songName, artistName); 
 
     // Main loop
     SDL_Event e;
@@ -467,7 +467,7 @@ int main() {
 
         // Display the OSD
         displayOSD();
-        SDL_Delay(16);  // Delay to limit the frame rate
+        SDL_Delay(16);
     }
 
     cleanup();
