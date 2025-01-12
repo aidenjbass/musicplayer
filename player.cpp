@@ -329,6 +329,12 @@ void init() {
         exit(1);
     }
 
+    // Set initial volume
+    if (INITIAL_VOL < 0) INITIAL_VOL = 0;
+    if (INITIAL_VOL > 100) INITIAL_VOL = 100;
+    volume = (INITIAL_VOL * 128) / 100;
+    Mix_VolumeMusic(volume);
+
     // Load music files
     trackList = getMusicFiles(FOLDER_TO_PLAY, &trackCount);
     if (trackCount == 0) {
@@ -336,7 +342,7 @@ void init() {
         exit(1);
     }
 
-    // Shuffle the playlist if SHUFFLE is enabled
+    // Set shyuffle
     if (SHUFFLE) {
         srand(time(NULL));  // Seed the random number generator
         for (int i = trackCount - 1; i > 0; i--) {
