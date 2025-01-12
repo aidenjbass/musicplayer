@@ -174,19 +174,6 @@ char **getMusicFiles(const char *path, int *trackCount) {
     return files;
 }
 
-// Function to load and play music from a given track
-void loadAndPlayMusic(int trackIndex) {
-    if (music) {
-        Mix_FreeMusic(music);
-    }
-    music = Mix_LoadMUS(trackList[trackIndex]);
-    if (music) {
-        Mix_PlayMusic(music, -1);
-    } else {
-        printf("LAP Error loading music: %s\n", Mix_GetError());
-    }
-}
-
 // Function to fade volume
 void fadeVolume(int startVolume, int endVolume, int steps, int duration) {
     int volumeChange = (endVolume - startVolume) / steps;
@@ -198,6 +185,24 @@ void fadeVolume(int startVolume, int endVolume, int steps, int duration) {
         if (volume < 0) volume = 0;     // Prevent going below 0
         Mix_VolumeMusic(volume);
         SDL_Delay(delay);  // Delay to simulate fade over time
+    }
+}
+
+// Function to load and play music from a given track
+void loadAndPlayMusic(int trackIndex) {
+    if (music) {
+        Mix_FreeMusic(music);
+    }
+    music = Mix_LoadMUS(trackList[trackIndex]);
+    if (music) {
+        int startVolume = 0;    
+        int endVolume = (INITIAL_VOL * 128) / 100;                 
+        Mix_VolumeMusic(startVolume);               
+        Mix_PlayMusic(music, -1);
+        fadeVolume(startVolume, endVolume, FADE_STEPS, FADE_STEPS_DURATION); // Fade-in effect
+
+    } else {
+        printf("LAP Error loading music: %s\n", Mix_GetError());
     }
 }
 
@@ -306,6 +311,14 @@ void handleGamepadInput() {
     }
 }
 
+// Function to check if an application is running
+int isApplicationOpen(const char* appName) {
+    char command[256];
+    snprintf(command, sizeof(command), "pgrep -x '%s' > /dev/null", appName);
+    return system(command) == 0;  // Returns 1 if the process is running, 0 otherwise
+}
+
+
 void init() {
     // Initialize SDL
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_GAMECONTROLLER) < 0) {
@@ -332,8 +345,7 @@ void init() {
     // Set initial volume
     if (INITIAL_VOL < 0) INITIAL_VOL = 0;
     if (INITIAL_VOL > 100) INITIAL_VOL = 100;
-    volume = (INITIAL_VOL * 128) / 100;
-    Mix_VolumeMusic(volume);
+    Mix_VolumeMusic((INITIAL_VOL * 128) / 100);
 
     // Load music files
     trackList = getMusicFiles(FOLDER_TO_PLAY, &trackCount);
@@ -384,6 +396,21 @@ int main() {
                 quit = 1;
             }
             handleKeyboardInput(&e);
+        }
+        
+        if (PLAY_MUSIC_INGAME) {
+            Mix_VolumeMusic(INGAME_VOL);  // Set volume to INGAME_VOL
+        } else {
+            // If PLAY_MUSIC_INGAME is 0 then we pause music if application is running, demo is WhatsApp
+            if (isApplicationOpen("WhatsApp")) {
+                if (Mix_PlayingMusic()) {
+                    Mix_PauseMusic();
+                }
+            } else {
+                if (Mix_PausedMusic()) {
+                    Mix_ResumeMusic();
+                }
+            }
         }
         handleGamepadInput();
     }
