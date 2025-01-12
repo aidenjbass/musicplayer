@@ -342,7 +342,7 @@ void init() {
         exit(1);
     }
 
-    // Set shyuffle
+    // Set shuffle
     if (SHUFFLE) {
         srand(time(NULL));  // Seed the random number generator
         for (int i = trackCount - 1; i > 0; i--) {
