@@ -11,11 +11,9 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     if (CMAKE_OSX_ARCHITECTURES STREQUAL "arm64")
         set(SDL2_DIR /opt/homebrew/opt/sdl2)
         set(SDL2_MIXER_DIR /opt/homebrew/opt/sdl2_mixer)
-        set(SDL2_TTF_DIR /opt/homebrew/opt/sdl2_ttf)
     elseif (CMAKE_OSX_ARCHITECTURES STREQUAL "x86_64")
         set(SDL2_DIR /usr/local/opt/sdl2)
         set(SDL2_MIXER_DIR /usr/local/opt/sdl2_mixer)
-        set(SDL2_TTF_DIR /usr/local/opt/sdl2_ttf)
     else()
         message(FATAL_ERROR "Unsupported architecture: ${CMAKE_OSX_ARCHITECTURES}")
     endif()
@@ -26,10 +24,9 @@ endif()
 # Find SDL2 and its modules (common for both macOS and Linux)
 find_package(SDL2 REQUIRED)
 find_package(SDL2_mixer REQUIRED)
-find_package(SDL2_ttf REQUIRED)
 
 # Includes
-include_directories(${SDL2_INCLUDE_DIRS} ${SDL2_mixer_INCLUDE_DIRS} ${SDL2_ttf_INCLUDE_DIRS})
+include_directories(${SDL2_INCLUDE_DIRS} ${SDL2_mixer_INCLUDE_DIRS})
 
 if (NOT SDL2_FOUND)
     message(FATAL_ERROR "SDL2 not found!")
@@ -37,10 +34,6 @@ endif()
 
 if (NOT SDL2_mixer_FOUND)
     message(FATAL_ERROR "SDL2_mixer not found!")
-endif()
-
-if (NOT SDL2_ttf_FOUND)
-    message(FATAL_ERROR "SDL2_ttf not found!")
 endif()
 
 # Source files
@@ -55,5 +48,4 @@ add_executable(MusicPlayer ${SOURCES})
 target_link_libraries(MusicPlayer
     SDL2::SDL2
     SDL2_mixer::SDL2_mixer
-    SDL2_ttf::SDL2_ttf
 )

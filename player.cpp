@@ -1,6 +1,5 @@
 #include <SDL.h>
 #include <SDL_mixer.h>
-#include <SDL_ttf.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -41,7 +40,6 @@ char **trackList = NULL;
 
 // SDL Variables
 SDL_GameController *gamepad = NULL;
-TTF_Font *font = NULL;
 SDL_Renderer *renderer = NULL;
 SDL_Window *window = NULL;
 SDL_Texture *osdTexture = NULL;
@@ -50,7 +48,6 @@ int screenWidth = 640, screenHeight = 480;
 
 // User Defined
 const char* INI_PATH = "../config.ini";
-const char* FONT_PATH = "/System/Library/Fonts/Helvetica.ttc";
 
 // Helper function for parsing the ini
 void stripQuotes(char *str) {
@@ -204,14 +201,6 @@ void fadeVolume(int startVolume, int endVolume, int steps, int duration) {
     }
 }
 
-// Function to load a font
-void loadSystemFont() {
-    font = TTF_OpenFont(FONT_PATH, 24);  // Load font with size 24
-    if (font == NULL) {
-        printf("Failed to load system font! SDL_ttf Error: %s\n", TTF_GetError());
-    }
-}
-
 // Function to extract song and artist name from filename
 void extractSongAndArtist(const char* filename, char* songName, char* artistName) {
     // Find the last '/' to get the file name without the path
@@ -317,58 +306,6 @@ void handleGamepadInput() {
     }
 }
 
-
-// Function to render the OSD
-void renderOSD(const char* songName, const char* artistName) {
-    // Combine song and artist into one string
-    char text[512];
-    snprintf(text, sizeof(text), "%s - %s", songName, artistName);
-
-    // Free any existing texture
-    if (osdTexture) {
-        SDL_DestroyTexture(osdTexture);
-    }
-
-    // Define the color for text (white)
-    SDL_Color white = {255, 255, 255, 255};  // White color with full opacity
-
-    // Create surface from text
-    SDL_Surface *textSurface = TTF_RenderText_Solid(font, text, white);
-    if (!textSurface) {
-        printf("Unable to create text surface: %s\n", TTF_GetError());
-        return;
-    }
-
-    // Create texture from surface
-    osdTexture = SDL_CreateTextureFromSurface(renderer, textSurface);
-    if (!osdTexture) {
-        printf("Unable to create texture from surface: %s\n", SDL_GetError());
-    }
-
-    // Set OSD rectangle (centered at the bottom of the screen)
-    int osdHeight = textSurface->h;
-    int osdWidth = textSurface->w;
-
-    int offsetY = (screenHeight * OSD_PERCENTFROMBOTTOM) / 100;
-    osdRect.x = (screenWidth - osdWidth) / 2;  // Center horizontally
-    osdRect.y = screenHeight - osdHeight - offsetY;  // Pad from bottom
-    osdRect.w = osdWidth;
-    osdRect.h = osdHeight;
-
-    // Free the surface after creating the texture
-    SDL_FreeSurface(textSurface);
-}
-
-// Function to display the OSD
-void displayOSD() {
-    SDL_RenderClear(renderer);
-    // Render the OSD (text overlay)
-    if (osdTexture) {
-        SDL_RenderCopy(renderer, osdTexture, NULL, &osdRect);
-    }
-    SDL_RenderPresent(renderer);
-}
-
 void init() {
     // Initialize SDL
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_GAMECONTROLLER) < 0) {
@@ -391,29 +328,6 @@ void init() {
         printf("Mix_OpenAudio failed: %s\n", Mix_GetError());
         exit(1);
     }
-
-    if (TTF_Init() == -1) {
-        printf("SDL_ttf could not initialize! SDL_ttf Error: %s\n", TTF_GetError());
-        exit(1);
-    }
-
-    font = TTF_OpenFont("/System/Library/Fonts/Helvetica.ttc", 24);  // Use a valid font path
-    if (!font) {
-        printf("Failed to load font! SDL_ttf Error: %s\n", TTF_GetError());
-        exit(1);
-    }
-
-    // window = SDL_CreateWindow("Music Player", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 640, 480, SDL_WINDOW_BORDERLESS);
-    // if (!window) {
-    //     printf("Window could not be created! SDL Error: %s\n", SDL_GetError());
-    //     exit(1);
-    // }
-
-    // renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-    // if (!renderer) {
-    //     printf("Renderer could not be created! SDL Error: %s\n", SDL_GetError());
-    //     exit(1);
-    // }
 
     // Load music files
     trackList = getMusicFiles(FOLDER_TO_PLAY, &trackCount);
@@ -442,10 +356,8 @@ void init() {
 void cleanup() {
     // Free resources
     SDL_DestroyTexture(osdTexture);
-    TTF_CloseFont(font);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
-    TTF_Quit();
     SDL_Quit();
 }
 
@@ -456,10 +368,6 @@ int main() {
     }
 
     init();
-
-    // const char* songName = "Song Title";
-    // const char* artistName = "Artist Name";
-    // renderOSD(songName, artistName); 
 
     // Main loop
     SDL_Event e;
@@ -472,10 +380,6 @@ int main() {
             handleKeyboardInput(&e);
         }
         handleGamepadInput();
-
-        // Display the OSD
-        displayOSD();
-        SDL_Delay(16);
     }
 
     cleanup();
