@@ -29,7 +29,6 @@ char KEY_VOL_DOWN = '['; //Default key for increasing volume
 int OSD;
 int OSD_SCREEN;
 int OSD_PERCENTFROMBOTTOM;
-int SHOW_TRACK_INFO;
 
 // Music Player Variables
 Mix_Music *music = NULL;
@@ -132,8 +131,6 @@ int loadSettingsFromFile(const char* filename) {
                 KEY_VOL_DOWN = value[0];
             } else if (strcmp(key, "OSD") == 0) {
                 OSD = atoi(value); // Convert to integer
-            } else if (strcmp(key, "SHOW_TRACK_INFO") == 0) {
-                SHOW_TRACK_INFO = atoi(value); // Convert to integer
             }
         }
     }
