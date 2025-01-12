@@ -361,7 +361,7 @@ void init() {
         printf("Controller not found!\n");
     }
 
-    if (Mix_Init(MIX_INIT_MP3 | MIX_INIT_OGG) == 0) {
+    if (Mix_Init(MIX_INIT_MP3 | MIX_INIT_OGG | MIX_INIT_WAVPACK | MIX_INIT_FLAC) == 0) {
         printf("Mix_Init failed: %s\n", Mix_GetError());
         exit(1);
     }
