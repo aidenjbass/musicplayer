@@ -5,7 +5,8 @@
             "includePath": [
                 "${workspaceFolder}/**",
                 "/opt/homebrew/include/SDL2",
-                "/usr/local/include/SDL2"
+                "/usr/local/include/SDL2",
+                "/opt/homebrew/Cellar/taglib/1.13.1/include"
             ],
             "defines": [],
             "intelliSenseMode": "macos-clang-x64",
