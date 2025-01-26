@@ -213,6 +213,17 @@ void toggleMusicWithFade(bool resume) {
     }
 }
 
+// Function that handles shuffle
+void shuffle(char **trackList, int trackCount) {
+    srand(time(NULL));  // Seed the random number generator
+    for (int i = trackCount - 1; i > 0; i--) {
+        int j = rand() % (i + 1);
+        char *temp = trackList[i];
+        trackList[i] = trackList[j];
+        trackList[j] = temp;
+    }
+}
+
 // Function to extract song and artist name from filename
 void extractSongAndArtist(const char* filename, char* songName, char* artistName) {
     // Find the last '/' to get the file name without the path
@@ -437,13 +448,7 @@ void init() {
 
     // Set shuffle
     if (SHUFFLE) {
-        srand(time(NULL));  // Seed the random number generator
-        for (int i = trackCount - 1; i > 0; i--) {
-            int j = rand() % (i + 1);
-            char *temp = trackList[i];
-            trackList[i] = trackList[j];
-            trackList[j] = temp;
-        }
+        shuffle(trackList, trackCount);
     }
 
     // Play the first track
