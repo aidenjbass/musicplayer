@@ -486,7 +486,7 @@ int isApplicationOpen(const char* appName) {
     return system(command) == 0;  // Returns 1 if the process is running, 0 otherwise
 }
 
-
+// Function to init SDL
 void init() {
     // Initialize SDL
     if (SDL_Init(SDL_INIT_AUDIO | SDL_INIT_GAMECONTROLLER | SDL_INIT_EVENTS) < 0) {
@@ -511,6 +511,7 @@ void init() {
     }
 }
 
+// Function to cleanup SDL when exiting
 void cleanup() {
     SDL_GameControllerClose(gamepad);
     Mix_CloseAudio();
