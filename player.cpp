@@ -268,14 +268,24 @@ void loadAndPlayMusic(int trackIndex) {
     }
 }
 
+// Function that skips to start of next song if RESUME_NEXT_TRACK is true
+void resumeNextTrack() {
+    currentTrackIndex = (currentTrackIndex + 1) % trackCount;
+    loadAndPlayMusic(currentTrackIndex);
+}
+
 // Function to toggle playback state with fadeVolume 
 void toggleMusicWithFade(bool resume) {
     if (resume) {
         int startVolume = 0;
         int endVolume = (INITIAL_VOL * 128) / 100;
         Mix_VolumeMusic(startVolume);
-        Mix_ResumeMusic();
-        fadeVolume(startVolume, endVolume, FADE_STEPS, FADE_STEPS_DURATION); // Fade-in effect
+        if(RESUME_NEXT_TRACK) {
+            resumeNextTrack();
+        } else {
+            Mix_ResumeMusic();
+            fadeVolume(startVolume, endVolume, FADE_STEPS, FADE_STEPS_DURATION); // Fade-in effect
+        }
     } else {
         int startVolume = Mix_VolumeMusic(-1); // Get current volume
         int endVolume = 0;                    
