@@ -12,7 +12,7 @@
 
 // User Defined
 const char* INI_PATH = "../config.ini";
-const char* NOWPLAYING_PATH = "../nowplaying.txt";
+const char* NOWPLAYING_PATH = "../NowPlaying.txt";
 
 // Settings variables
 char FOLDER_TO_PLAY[1024] = "../music";
