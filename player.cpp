@@ -7,7 +7,7 @@
 #include <time.h>
 
 // Settings variables
-char FOLDER_TO_PLAY[1024];
+char FOLDER_TO_PLAY[1024] = "../music";
 char PLAYLIST_FILE_PATH[256];
 int FADE_STEPS;
 int FADE_STEPS_DURATION;
