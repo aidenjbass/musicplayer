@@ -3,6 +3,7 @@
 #include <taglib/tag.h>
 #include <taglib/fileref.h>
 #include <iostream>
+#include <fstream>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -54,6 +55,17 @@ int fileExists(const char *path) {
         return 1;
     } else {
         return 0;
+    }
+}
+
+// Helper function to write current playing to a file
+void writeNowPlayingToFile(const std::string& nowPlaying) {
+    std::ofstream nowPlayingFile("../nowplaying.txt");
+    if (nowPlayingFile.is_open()) {
+        nowPlayingFile << nowPlaying << std::endl;
+        nowPlayingFile.close();
+    } else {
+        std::cout << "Failed to write to nowplaying.txt" << std::endl;
     }
 }
 
@@ -451,9 +463,11 @@ void handleGamepadInput() {
     // GAMEPAD_CONTROL_L1R1: L1 for Previous Track, R1 for Next Track
     if (GAMEPAD_CONTROL_L1R1) {
         if (SDL_GameControllerGetButton(gamepad, SDL_CONTROLLER_BUTTON_LEFTSHOULDER)) {
+            std::cout << "L1 button pressed!" << std::endl;
             currentTrackIndex = (currentTrackIndex - 1 + trackCount) % trackCount;
             loadAndPlayMusic(currentTrackIndex);
         } else if (SDL_GameControllerGetButton(gamepad, SDL_CONTROLLER_BUTTON_RIGHTSHOULDER)) {
+            std::cout << "R1 button pressed!" << std::endl;
             currentTrackIndex = (currentTrackIndex + 1) % trackCount;
             loadAndPlayMusic(currentTrackIndex);
         }
@@ -533,6 +547,10 @@ int main() {
 
     init();
 
+    std::string nowPlaying = get_song_metadata(trackList[currentTrackIndex]);
+    writeNowPlayingToFile(nowPlaying);
+    bool songChanged = true;
+
     // Main loop
     SDL_Event e;
     int quit = 0;
@@ -544,6 +562,14 @@ int main() {
             handleKeyboardInput(&e);
         }
         handleGamepadInput();
+
+        std::string newSongMetadata = get_song_metadata(trackList[currentTrackIndex]);
+        if (newSongMetadata != nowPlaying) {
+            nowPlaying = newSongMetadata;
+            writeNowPlayingToFile(nowPlaying);
+            songChanged = true;
+        }
+
     }
     cleanup();
     return 0;

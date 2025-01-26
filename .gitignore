@@ -2,3 +2,4 @@ build/
 *.DS_Store
 /music
 *.m3u
+nowplaying.txt
