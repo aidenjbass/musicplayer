@@ -508,6 +508,23 @@ void init() {
         printf("Mix_OpenAudio failed: %s\n", Mix_GetError());
         exit(1);
     }
+}
+
+void cleanup() {
+    SDL_GameControllerClose(gamepad);
+    Mix_CloseAudio();
+    Mix_Quit();
+    SDL_Quit();
+}
+
+
+int main() {
+    if (loadSettingsFromFile(INI_PATH) != 0) {
+        printf("Failed to load settings from config.ini\n");
+        return -1;  // Exit if settings can't be loaded
+    }
+
+    init();
 
     // Set initial volume
     if (INITIAL_VOL < 0) INITIAL_VOL = 0;
@@ -532,31 +549,14 @@ void init() {
         shuffle(trackList, trackCount);
     }
 
-    // Play the first track
+    // Play the first song
     if (trackCount > 0) {
         loadAndPlayMusic(currentTrackIndex);
     }
-}
 
-void cleanup() {
-    SDL_GameControllerClose(gamepad);
-    Mix_CloseAudio();
-    Mix_Quit();
-    SDL_Quit();
-}
-
-
-int main() {
-    if (loadSettingsFromFile(INI_PATH) != 0) {
-        printf("Failed to load settings from config.ini\n");
-        return -1;  // Exit if settings can't be loaded
-    }
-
-    init();
-
+    // Get the metadata for the first song
     std::string nowPlaying = get_song_metadata(trackList[currentTrackIndex]);
     writeNowPlayingToFile(nowPlaying);
-    bool songChanged = true;
 
     // Main loop
     SDL_Event e;
@@ -574,7 +574,6 @@ int main() {
         if (newSongMetadata != nowPlaying) {
             nowPlaying = newSongMetadata;
             writeNowPlayingToFile(nowPlaying);
-            songChanged = true;
         }
 
     }
