@@ -302,9 +302,11 @@ void toggleMusicWithFade(bool resume) {
 
 // Function to handle music playback state during the game
 void handleMusicInGamePlayback() {
-    if (PLAY_MUSIC_INGAME && isApplicationOpen(APP_TO_MONITOR)) {
+    if (!PLAY_MUSIC_INGAME && isApplicationOpen(APP_TO_MONITOR)) {
+        // If PLAY_MUSIC_INGAME is false and isApplicationOpen is true, then we pause, this simulates handing RetroFE off to a game
         Mix_PauseMusic();
     } else {
+        // If PLAY_MUSIC_INGAME true or isApplicationOpen false we assume we're in RetroFE or we're in game and we don't need to do anything
             Mix_ResumeMusic();
         }
 }
