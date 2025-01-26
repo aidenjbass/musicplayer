@@ -1,7 +1,3 @@
-#include <SDL.h>
-#include <SDL_mixer.h>
-#include <taglib/tag.h>
-#include <taglib/fileref.h>
 #include <iostream>
 #include <fstream>
 #include <stdio.h>
@@ -9,6 +5,14 @@
 #include <string.h>
 #include <dirent.h>
 #include <time.h>
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_mixer.h>
+#include <taglib/tag.h>
+#include <taglib/fileref.h>
+
+// User Defined
+const char* INI_PATH = "../config.ini";
+const char* NOWPLAYING_PATH = "../nowplaying.txt";
 
 // Settings variables
 char FOLDER_TO_PLAY[1024] = "../music";
@@ -44,9 +48,6 @@ char **trackList = NULL;
 // SDL Variables
 SDL_GameController *gamepad = NULL;
 
-// User Defined
-const char* INI_PATH = "../config.ini";
-
 // Helper function to check if a file exists
 int fileExists(const char *path) {
     FILE *file = fopen(path, "r");
@@ -60,7 +61,7 @@ int fileExists(const char *path) {
 
 // Helper function to write current playing to a file
 void writeNowPlayingToFile(const std::string& nowPlaying) {
-    std::ofstream nowPlayingFile("../nowplaying.txt");
+    std::ofstream nowPlayingFile(NOWPLAYING_PATH);
     if (nowPlayingFile.is_open()) {
         nowPlayingFile << nowPlaying << std::endl;
         nowPlayingFile.close();

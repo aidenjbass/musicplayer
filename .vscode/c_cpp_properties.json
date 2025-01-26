@@ -4,9 +4,9 @@
             "name": "Mac",
             "includePath": [
                 "${workspaceFolder}/**",
-                "/opt/homebrew/include/SDL2",
-                "/usr/local/include/SDL2",
-                "/opt/homebrew/Cellar/taglib/1.13.1/include"
+                "/opt/homebrew/include/**",  // For M1, M2 (Apple Silicon)
+                "/usr/local/include/**",    // For Intel-based Macs
+                "/opt/homebrew/include/SDL2/**"  // SDL2 path
             ],
             "defines": [],
             "intelliSenseMode": "macos-clang-x64",
@@ -15,8 +15,7 @@
             "cppStandard": "c++17",
             "browse": {
                 "path": [
-                    "/opt/homebrew/include",
-                    "/usr/local/include",
+                    "/opt/homebrew/include/**",
                     "${workspaceFolder}/**"
                 ],
                 "limitSymbolsToIncludedHeaders": true
