@@ -39,11 +39,6 @@ char **trackList = NULL;
 
 // SDL Variables
 SDL_GameController *gamepad = NULL;
-SDL_Renderer *renderer = NULL;
-SDL_Window *window = NULL;
-SDL_Texture *osdTexture = NULL;
-SDL_Rect osdRect;
-int screenWidth = 640, screenHeight = 480;
 
 // User Defined
 const char* INI_PATH = "../config.ini";
@@ -459,9 +454,6 @@ void init() {
 
 void cleanup() {
     // Free resources
-    SDL_DestroyTexture(osdTexture);
-    SDL_DestroyRenderer(renderer);
-    SDL_DestroyWindow(window);
     SDL_Quit();
 }
 
@@ -484,22 +476,24 @@ int main() {
             handleKeyboardInput(&e);
         }
         handleGamepadInput();
-        // if (PLAY_MUSIC_INGAME) {
-        //     Mix_VolumeMusic(INGAME_VOL);  // Set volume to INGAME_VOL
-        // } else {
-        //     // If PLAY_MUSIC_INGAME is 0 then we pause music if application is running, demo is WhatsApp
-        //     if (isApplicationOpen("WhatsApp")) {
-        //         if (Mix_PlayingMusic()) {
-        //             Mix_PauseMusic();
-        //         }
-        //     } else {
-        //         if (Mix_PausedMusic()) {
-        //             Mix_ResumeMusic();
-        //         }
-        //     }
-        // }
     }
-
     cleanup();
     return 0;
 }
+
+// void handleMusicPlayback() {
+//     if (PLAY_MUSIC_INGAME) {
+//         Mix_VolumeMusic(INGAME_VOL);  // Set the in-game music volume
+//     } else {
+//         // Check if WhatsApp or another application is open
+//         if (isApplicationOpen("WhatsApp")) {
+//             if (Mix_PlayingMusic()) {
+//                 Mix_PauseMusic();  // Pause the music if WhatsApp is open
+//             }
+//         } else {
+//             if (Mix_PausedMusic()) {
+//                 Mix_ResumeMusic();  // Resume the music if WhatsApp is closed
+//             }
+//         }
+//     }
+// }
