@@ -43,6 +43,17 @@ SDL_GameController *gamepad = NULL;
 // User Defined
 const char* INI_PATH = "../config.ini";
 
+// Helper function to check if a file exists
+int fileExists(const char *path) {
+    FILE *file = fopen(path, "r");
+    if (file) {
+        fclose(file);
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
 // Helper function for parsing the ini
 void stripQuotes(char *str) {
     int len = strlen(str);
@@ -163,6 +174,43 @@ char **getMusicFiles(const char *path, int *trackCount) {
         }
     }
     closedir(dir);
+    return files;
+}
+
+// Function to load and return tracks from an M3U playlist
+char **loadM3UPlaylist(const char *path, int *trackCount){
+    FILE *file = fopen(path, "r");
+    if (!file) {
+        perror("Failed to open M3U file");
+        return NULL;
+    }
+
+    char line[1024];
+    char **files = (char **)malloc(100 * sizeof(char *));
+    *trackCount = 0;
+
+    // Read each line of the M3U file
+    while (fgets(line, sizeof(line), file)) {
+        // Trim newline or carriage return characters
+        line[strcspn(line, "\r\n")] = '\0';
+
+        // Check if the line contains a valid audio file (check extensions)
+        if (strstr(line, ".mp3") || strstr(line, ".mp4") || 
+            strstr(line, ".wav") || strstr(line, ".wma") || 
+            strstr(line, ".flac") || strstr(line, ".ogg")) {
+            
+            // Allocate space for the track and copy the path/filename
+            files[*trackCount] = (char *)malloc(strlen(line) + 1);
+            if (!files[*trackCount]) {
+                perror("Memory allocation failure for track");
+                fclose(file);
+                return NULL;
+            }
+            strcpy(files[*trackCount], line);
+            (*trackCount)++;
+        }
+    }
+    fclose(file);
     return files;
 }
 
@@ -439,7 +487,12 @@ void init() {
     Mix_VolumeMusic((INITIAL_VOL * 128) / 100);
 
     // Load music files
-    trackList = getMusicFiles(FOLDER_TO_PLAY, &trackCount);
+    if(fileExists(PLAYLIST_FILE_PATH))
+    {
+        trackList = loadM3UPlaylist(PLAYLIST_FILE_PATH, &trackCount);
+    } else {
+        trackList = getMusicFiles(FOLDER_TO_PLAY, &trackCount);
+    }
     if (trackCount == 0) {
         printf("No music files found!\n");
         exit(1);
