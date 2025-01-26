@@ -249,9 +249,9 @@ void loadAndPlayMusic(int trackIndex) {
     }
     music = Mix_LoadMUS(trackList[trackIndex]);
     if (music) {
-        int startVolume = 0;    
-        int endVolume = (INITIAL_VOL * 128) / 100;                 
-        Mix_VolumeMusic(startVolume);               
+        int startVolume = 0;
+        int endVolume = (INITIAL_VOL * 128) / 100;
+        Mix_VolumeMusic(startVolume);
         Mix_PlayMusic(music, -1);
         fadeVolume(startVolume, endVolume, FADE_STEPS, FADE_STEPS_DURATION); // Fade-in effect
 
@@ -263,9 +263,9 @@ void loadAndPlayMusic(int trackIndex) {
 // Function to toggle playback state with fadeVolume 
 void toggleMusicWithFade(bool resume) {
     if (resume) {
-        int startVolume = 0;    
-        int endVolume = (INITIAL_VOL * 128) / 100;                 
-        Mix_VolumeMusic(startVolume);               
+        int startVolume = 0;
+        int endVolume = (INITIAL_VOL * 128) / 100;
+        Mix_VolumeMusic(startVolume);
         Mix_ResumeMusic();
         fadeVolume(startVolume, endVolume, FADE_STEPS, FADE_STEPS_DURATION); // Fade-in effect
     } else {
