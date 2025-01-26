@@ -13,6 +13,7 @@
 // User Defined
 const char* INI_PATH = "../config.ini";
 const char* NOWPLAYING_PATH = "../NowPlaying.txt";
+const char* APP_TO_MONITOR = "WhatsApp";
 
 // Settings variables
 char FOLDER_TO_PLAY[1024] = "../music";
@@ -158,8 +159,6 @@ int loadSettingsFromFile(const char* filename) {
                 KEY_VOL_UP = value[0];
             } else if (strcmp(key, "KEY_VOL_DOWN") == 0) {
                 KEY_VOL_DOWN = value[0];
-            } else if (strcmp(key, "OSD") == 0) {
-                OSD = atoi(value); // Convert to integer
             }
         }
     }
@@ -268,6 +267,13 @@ void loadAndPlayMusic(int trackIndex) {
     }
 }
 
+// Function to check if an application is running
+int isApplicationOpen(const char* appName) {
+    char command[256];
+    snprintf(command, sizeof(command), "pgrep -x '%s' > /dev/null", appName);
+    return system(command) == 0;  // Returns 1 if the process is running, 0 otherwise
+}
+
 // Function that skips to start of next song if RESUME_NEXT_TRACK is true
 void resumeNextTrack() {
     currentTrackIndex = (currentTrackIndex + 1) % trackCount;
@@ -293,6 +299,16 @@ void toggleMusicWithFade(bool resume) {
         Mix_PauseMusic();
     }
 }
+
+// Function to handle music playback state during the game
+void handleMusicInGamePlayback() {
+    if (PLAY_MUSIC_INGAME && isApplicationOpen(APP_TO_MONITOR)) {
+        Mix_PauseMusic();
+    } else {
+            Mix_ResumeMusic();
+        }
+}
+
 
 // Function that handles shuffle
 void shuffle(char **trackList, int trackCount) {
@@ -496,13 +512,6 @@ void handleGamepadInput() {
     }
 }
 
-// Function to check if an application is running
-int isApplicationOpen(const char* appName) {
-    char command[256];
-    snprintf(command, sizeof(command), "pgrep -x '%s' > /dev/null", appName);
-    return system(command) == 0;  // Returns 1 if the process is running, 0 otherwise
-}
-
 // Function to init SDL
 void init() {
     // Initialize SDL
@@ -593,6 +602,7 @@ int main() {
             }
         }
         handleGamepadInput();
+        handleMusicInGamePlayback();
 
         std::string newSongMetadata = get_song_metadata(trackList[currentTrackIndex]);
         if (newSongMetadata != nowPlaying) {
@@ -604,20 +614,3 @@ int main() {
     cleanup();
     return 0;
 }
-
-// void handleMusicPlayback() {
-//     if (PLAY_MUSIC_INGAME) {
-//         Mix_VolumeMusic(INGAME_VOL);  // Set the in-game music volume
-//     } else {
-//         // Check if WhatsApp or another application is open
-//         if (isApplicationOpen("WhatsApp")) {
-//             if (Mix_PlayingMusic()) {
-//                 Mix_PauseMusic();  // Pause the music if WhatsApp is open
-//             }
-//         } else {
-//             if (Mix_PausedMusic()) {
-//                 Mix_ResumeMusic();  // Resume the music if WhatsApp is closed
-//             }
-//         }
-//     }
-// }
