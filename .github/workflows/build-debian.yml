@@ -27,7 +27,9 @@ jobs:
             libsdl2-mixer-dev \
             libtag1-dev \
             cmake \
-            build-essential
+            build-essential \
+            pkg-config
+
 
       # Configure and build the project
       - name: Configure with CMake
