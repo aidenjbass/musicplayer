@@ -281,10 +281,10 @@ void resumeNextTrack() {
 }
 
 // Function to toggle playback state with fadeVolume 
-void toggleMusicWithFade(bool resume) {
+void toggleMusicWithFade(bool resume, int VOL) {
     if (resume) {
         int startVolume = 0;
-        int endVolume = (INITIAL_VOL * 128) / 100;
+        int endVolume = (VOL * 128) / 100;
         Mix_VolumeMusic(startVolume);
         if(RESUME_NEXT_TRACK) {
             resumeNextTrack();
@@ -305,12 +305,15 @@ void handleMusicInGamePlayback() {
     if (!PLAY_MUSIC_INGAME && isApplicationOpen(APP_TO_MONITOR)) {
         // If PLAY_MUSIC_INGAME is false and isApplicationOpen is true, then we pause, this simulates handing RetroFE off to a game
         Mix_PauseMusic();
-    } else {
+    }
+    else if (PLAY_MUSIC_INGAME && isApplicationOpen(APP_TO_MONITOR)) {
+        toggleMusicWithFade(true, INGAME_VOL);
+    }
+    else {
         // If PLAY_MUSIC_INGAME true or isApplicationOpen false we assume we're in RetroFE or we're in game and we don't need to do anything
             Mix_ResumeMusic();
         }
 }
-
 
 // Function that handles shuffle
 void shuffle(char **trackList, int trackCount) {
@@ -447,9 +450,9 @@ void handleGamepadInput() {
             if (!buttonHandled) {
                 if (Mix_PlayingMusic()) {
                     if (Mix_PausedMusic()) {
-                        toggleMusicWithFade(true);
+                        toggleMusicWithFade(true, INITIAL_VOL);
                     } else {
-                        toggleMusicWithFade(false);
+                        toggleMusicWithFade(false, INITIAL_VOL);
                     }
                 } else {
                     // Optionally handle the "no music loaded" case
@@ -486,9 +489,9 @@ void handleGamepadInput() {
             if (!buttonHandled) {
                 if (Mix_PlayingMusic()) {
                     if (Mix_PausedMusic()) {
-                        toggleMusicWithFade(true);
+                        toggleMusicWithFade(true, INITIAL_VOL);
                     } else {
-                        toggleMusicWithFade(false);
+                        toggleMusicWithFade(false, INITIAL_VOL);
                     }
                 } else {
                     // Optionally handle the "no music loaded" case
