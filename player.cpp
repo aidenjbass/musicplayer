@@ -1,5 +1,8 @@
 #include <SDL.h>
 #include <SDL_mixer.h>
+#include <taglib/tag.h>
+#include <taglib/fileref.h>
+#include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -273,34 +276,41 @@ void shuffle(char **trackList, int trackCount) {
 }
 
 // Function to extract song and artist name from filename
-void extractSongAndArtist(const char* filename, char* songName, char* artistName) {
-    // Find the last '/' to get the file name without the path
-    const char* fileName = strrchr(filename, '/');
-    if (!fileName) {
-        fileName = filename;  // No path, just the file name
-    } else {
-        fileName++;  // Skip past the '/'
-    }
+std::string get_song_metadata(const char* filename) {
+    // Open the MP3 file using TagLib
+    TagLib::FileRef f(filename);
 
-    // Find the position of the first '-' (assuming the file name format is "songname - artistname.extension")
-    const char* dashPos = strchr(fileName, '-');
-    if (dashPos) {
-        // Copy song name
-        size_t songLen = dashPos - fileName;
-        strncpy(songName, fileName, songLen);
-        songName[songLen] = '\0';
+    if (!f.isNull() && f.tag()) {
+        // Get the metadata
+        TagLib::Tag *tag = f.tag();
+        TagLib::String artist = tag->artist();
+        TagLib::String title = tag->title();
 
-        // Copy artist name (after the dash, until the extension)
-        const char* extPos = strchr(dashPos + 1, '.');
-        if (extPos) {
-            size_t artistLen = extPos - (dashPos + 1);
-            strncpy(artistName, dashPos + 1, artistLen);
-            artistName[artistLen] = '\0';
+        // Check if the artist is empty, try fetching from Author (AlbumArtist)
+        if (artist.isEmpty()) {
+            // For MP3s, you can also check the "AlbumArtist" tag, or you could use "Author"
+            artist = tag->artist();
+            if (artist.isEmpty()) {
+                // Fallback to "Title" tag (if available in your file)
+                artist = tag->title(); 
+            }
         }
+
+        // If no artist is found, set a default value
+        if (artist.isEmpty()) {
+            artist = "Unknown Artist";
+        }
+
+        // If no title is found, set a default value
+        if (title.isEmpty()) {
+            title = "Unknown Title";
+        }
+
+        // Create the NowPlaying string
+        std::string nowPlaying = artist.toCString() + std::string(" - ") + title.toCString();
+        return nowPlaying;
     } else {
-        // If no '-' is found, treat the whole name as the song name
-        strcpy(songName, fileName);
-        artistName[0] = '\0'; // No artist name
+        return "Unable to read file or no tags found.";
     }
 }
 
