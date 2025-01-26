@@ -496,7 +496,7 @@ int isApplicationOpen(const char* appName) {
 // Function to init SDL
 void init() {
     // Initialize SDL
-    if (SDL_Init(SDL_INIT_AUDIO | SDL_INIT_GAMECONTROLLER | SDL_INIT_EVENTS) < 0) {
+    if (SDL_Init(SDL_INIT_AUDIO | SDL_INIT_GAMECONTROLLER | SDL_INIT_EVENTS | SDL_INIT_VIDEO) < 0) {
         fprintf(stderr, "SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
         exit(1);
     }
@@ -578,8 +578,9 @@ int main() {
         while (SDL_PollEvent(&e)) {
             if (e.type == SDL_QUIT) {
                 quit = 1;
+            } else if (e.type == SDL_KEYDOWN || e.type == SDL_KEYUP) {
+                handleKeyboardInput(&e);
             }
-            handleKeyboardInput(&e);
         }
         handleGamepadInput();
 
