@@ -364,38 +364,41 @@ void handleKeyboardInput(SDL_Event *event) {
 
 void handleGamepadInput() {
     if (!gamepad) { return; }
+        int deadzone = 16000; // Set the deadzone, -32000,32000 is max
 
     // GAMEPAD_CONTROL_FULL: Right Stick X-axis for Next/Prev, Y-axis for Volume, Right Stick Click for Pause
     if (GAMEPAD_CONTROL_FULL) {
         // Track navigation (Right Stick X-axis)
         static bool axisRightXHandled = false;
         int rightX = SDL_GameControllerGetAxis(gamepad, SDL_CONTROLLER_AXIS_RIGHTX);
-        if (!axisRightXHandled && rightX > 8000) {
+        if (!axisRightXHandled && rightX > deadzone) {
             currentTrackIndex = (currentTrackIndex + 1) % trackCount;
             loadAndPlayMusic(currentTrackIndex);
             axisRightXHandled = true; // Prevent repeated triggering
-        } else if (!axisRightXHandled && rightX < -8000) {
+        } else if (!axisRightXHandled && rightX < -deadzone) {
             currentTrackIndex = (currentTrackIndex - 1 + trackCount) % trackCount;
             loadAndPlayMusic(currentTrackIndex);
             axisRightXHandled = true;
-        } else if (rightX > -8000 && rightX < 8000) {
+        } else if (rightX > -deadzone && rightX < deadzone) {
             axisRightXHandled = false; // Reset once axis returns to neutral
         }
 
         // Volume control (Right Stick Y-axis)
         static bool axisRightYHandled = false;
         int rightY = SDL_GameControllerGetAxis(gamepad, SDL_CONTROLLER_AXIS_RIGHTY);
-        if (!axisRightYHandled && rightY > 8000) {
-            volume += 5; // Smaller increment for smoother control
-            if (volume > 128) volume = 128;
-            Mix_VolumeMusic(volume);
+        int volumeIncrement = 5;
+        int currentVolume = Mix_VolumeMusic(-1);
+        if (!axisRightYHandled && rightY < -deadzone) {
+            currentVolume += volumeIncrement;
+            if (currentVolume > 128) currentVolume = 128;
+            Mix_VolumeMusic(currentVolume);
             axisRightYHandled = true;
-        } else if (!axisRightYHandled && rightY < -8000) {
-            volume -= 5;
-            if (volume < 0) volume = 0;
-            Mix_VolumeMusic(volume);
+        } else if (!axisRightYHandled && rightY > deadzone) {
+            currentVolume -= volumeIncrement;
+            if (currentVolume < 0) currentVolume = 0;
+            Mix_VolumeMusic(currentVolume);
             axisRightYHandled = true;
-        } else if (rightY > -8000 && rightY < 8000) {
+        } else if (rightY > -deadzone && rightY < deadzone) {
             axisRightYHandled = false; // Reset once axis returns to neutral
         }
 
@@ -425,15 +428,15 @@ void handleGamepadInput() {
         // Track navigation (Right Stick X-axis)
         static bool axisRightXHandled = false;
         int rightX = SDL_GameControllerGetAxis(gamepad, SDL_CONTROLLER_AXIS_RIGHTX);
-        if (!axisRightXHandled && rightX > 8000) {
+        if (!axisRightXHandled && rightX > deadzone) {
             currentTrackIndex = (currentTrackIndex + 1) % trackCount;
             loadAndPlayMusic(currentTrackIndex);
             axisRightXHandled = true; // Prevent repeated triggering
-        } else if (!axisRightXHandled && rightX < -8000) {
+        } else if (!axisRightXHandled && rightX < -deadzone) {
             currentTrackIndex = (currentTrackIndex - 1 + trackCount) % trackCount;
             loadAndPlayMusic(currentTrackIndex);
             axisRightXHandled = true;
-        } else if (rightX > -8000 && rightX < 8000) {
+        } else if (rightX > -deadzone && rightX < deadzone) {
             axisRightXHandled = false; // Reset once axis returns to neutral
         }
     }
