@@ -59,6 +59,13 @@ int fileExists(const char *path) {
     }
 }
 
+// Helper function to sort A-Z with qsort
+int compareStrings(const void* a, const void* b) {
+    const char* str1 = *(const char**)a;
+    const char* str2 = *(const char**)b;
+    return strcmp(str1, str2);
+}
+
 // Helper function to write current playing to a file
 void writeNowPlayingToFile(const std::string& nowPlaying) {
     std::ofstream nowPlayingFile(NOWPLAYING_PATH);
@@ -546,9 +553,13 @@ int main() {
     }
     printf("Found %d music files\n", trackCount);
 
+    // Sort trackList alphabetically
+    qsort(trackList, trackCount, sizeof(char*), compareStrings);
+
     // Set shuffle
     if (SHUFFLE) {
-        shuffle(trackList, trackCount);
+        shuffle(trackList, trackCount); // Shuffle the index
+        currentTrackIndex = rand() % trackCount; // Start on a random index
     }
 
     // Play the first song
