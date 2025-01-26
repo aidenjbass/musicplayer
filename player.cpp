@@ -172,17 +172,16 @@ char **getMusicFiles(const char *path, int *trackCount) {
 }
 
 // Function to fade volume
-void fadeVolume(int startVolume, int endVolume, int steps, int duration) {
-    int volumeChange = (endVolume - startVolume) / steps;
-    int delay = duration / steps;  // Time delay between each step
+void fadeVolume(int startVolume, int endVolume, int steps, int stepDuration) {
+    int volumeStep = (endVolume - startVolume) / steps;
 
     for (int i = 0; i < steps; i++) {
-        volume += volumeChange;
-        if (volume > 128) volume = 128;  // Cap at max volume
-        if (volume < 0) volume = 0;     // Prevent going below 0
-        Mix_VolumeMusic(volume);
-        SDL_Delay(delay);  // Delay to simulate fade over time
+        int currentVolume = startVolume + (volumeStep * i);
+        Mix_VolumeMusic(currentVolume);
+        SDL_Delay(stepDuration); // Pause for the step duration
     }
+
+    Mix_VolumeMusic(endVolume); // Ensure final volume is set
 }
 
 // Function to load and play music from a given track
@@ -200,6 +199,22 @@ void loadAndPlayMusic(int trackIndex) {
 
     } else {
         printf("LAP Error loading music: %s\n", Mix_GetError());
+    }
+}
+
+// Function to toggle playback state with fadeVolume 
+void toggleMusicWithFade(bool resume) {
+    if (resume) {
+        int startVolume = 0;    
+        int endVolume = (INITIAL_VOL * 128) / 100;                 
+        Mix_VolumeMusic(startVolume);               
+        Mix_ResumeMusic();
+        fadeVolume(startVolume, endVolume, FADE_STEPS, FADE_STEPS_DURATION); // Fade-in effect
+    } else {
+        int startVolume = Mix_VolumeMusic(-1); // Get current volume
+        int endVolume = 0;                    
+        fadeVolume(startVolume, endVolume, FADE_STEPS, FADE_STEPS_DURATION); // Fade-out effect
+        Mix_PauseMusic();
     }
 }
 
@@ -276,52 +291,96 @@ void handleGamepadInput() {
 
     // GAMEPAD_CONTROL_FULL: Right Stick X-axis for Next/Prev, Y-axis for Volume, Right Stick Click for Pause
     if (GAMEPAD_CONTROL_FULL) {
-        if (SDL_GameControllerGetAxis(gamepad, SDL_CONTROLLER_AXIS_RIGHTX) > 8000) {
+        // Track navigation (Right Stick X-axis)
+        static bool axisRightXHandled = false;
+        int rightX = SDL_GameControllerGetAxis(gamepad, SDL_CONTROLLER_AXIS_RIGHTX);
+        if (!axisRightXHandled && rightX > 8000) {
             currentTrackIndex = (currentTrackIndex + 1) % trackCount;
             loadAndPlayMusic(currentTrackIndex);
-        } else if (SDL_GameControllerGetAxis(gamepad, SDL_CONTROLLER_AXIS_RIGHTX) < -8000) {
+            axisRightXHandled = true; // Prevent repeated triggering
+        } else if (!axisRightXHandled && rightX < -8000) {
             currentTrackIndex = (currentTrackIndex - 1 + trackCount) % trackCount;
             loadAndPlayMusic(currentTrackIndex);
+            axisRightXHandled = true;
+        } else if (rightX > -8000 && rightX < 8000) {
+            axisRightXHandled = false; // Reset once axis returns to neutral
         }
 
-        if (SDL_GameControllerGetAxis(gamepad, SDL_CONTROLLER_AXIS_RIGHTY) > 8000) {
-            volume += 10;
+        // Volume control (Right Stick Y-axis)
+        static bool axisRightYHandled = false;
+        int rightY = SDL_GameControllerGetAxis(gamepad, SDL_CONTROLLER_AXIS_RIGHTY);
+        if (!axisRightYHandled && rightY > 8000) {
+            volume += 5; // Smaller increment for smoother control
             if (volume > 128) volume = 128;
             Mix_VolumeMusic(volume);
-        } else if (SDL_GameControllerGetAxis(gamepad, SDL_CONTROLLER_AXIS_RIGHTY) < -8000) {
-            volume -= 10;
+            axisRightYHandled = true;
+        } else if (!axisRightYHandled && rightY < -8000) {
+            volume -= 5;
             if (volume < 0) volume = 0;
             Mix_VolumeMusic(volume);
+            axisRightYHandled = true;
+        } else if (rightY > -8000 && rightY < 8000) {
+            axisRightYHandled = false; // Reset once axis returns to neutral
         }
 
+        // Play/Pause toggle (Right Stick Button)
+        static bool buttonHandled = false;
         if (SDL_GameControllerGetButton(gamepad, SDL_CONTROLLER_BUTTON_RIGHTSTICK)) {
-            if (Mix_PlayingMusic()) {
-                Mix_PauseMusic();
-            } else {
-                Mix_ResumeMusic();
+            if (!buttonHandled) { // Trigger only on initial press
+                if (Mix_PlayingMusic()) {
+                    if (Mix_PausedMusic()) {
+                        toggleMusicWithFade(true);
+                    } else {
+                        toggleMusicWithFade(false);
+                    }
+                } else {
+                    // Optionally handle the "no music loaded" case
+                    // e.g., loadAndPlayMusic(currentTrackIndex);
+                }
+                buttonHandled = true;
             }
+        } else {
+            buttonHandled = false; // Reset when button is released
         }
     }
 
     // GAMEPAD_CONTROL_SIMPLE: Right Stick X-axis for Next/Prev
     if (GAMEPAD_CONTROL_SIMPLE) {
-        if (SDL_GameControllerGetAxis(gamepad, SDL_CONTROLLER_AXIS_RIGHTX) > 8000) {
+        // Track navigation (Right Stick X-axis)
+        static bool axisRightXHandled = false;
+        int rightX = SDL_GameControllerGetAxis(gamepad, SDL_CONTROLLER_AXIS_RIGHTX);
+        if (!axisRightXHandled && rightX > 8000) {
             currentTrackIndex = (currentTrackIndex + 1) % trackCount;
             loadAndPlayMusic(currentTrackIndex);
-        } else if (SDL_GameControllerGetAxis(gamepad, SDL_CONTROLLER_AXIS_RIGHTX) < -8000) {
+            axisRightXHandled = true; // Prevent repeated triggering
+        } else if (!axisRightXHandled && rightX < -8000) {
             currentTrackIndex = (currentTrackIndex - 1 + trackCount) % trackCount;
             loadAndPlayMusic(currentTrackIndex);
+            axisRightXHandled = true;
+        } else if (rightX > -8000 && rightX < 8000) {
+            axisRightXHandled = false; // Reset once axis returns to neutral
         }
     }
 
     // GAMEPAD_CONTROL_PAUSE: Right Stick Click only for Pause/Resume
     if (GAMEPAD_CONTROL_PAUSE) {
+        static bool buttonHandled = false;
         if (SDL_GameControllerGetButton(gamepad, SDL_CONTROLLER_BUTTON_RIGHTSTICK)) {
-            if (Mix_PlayingMusic()) {
-                Mix_PauseMusic();
-            } else {
-                Mix_ResumeMusic();
+            if (!buttonHandled) { // Trigger only on initial press
+                if (Mix_PlayingMusic()) {
+                    if (Mix_PausedMusic()) {
+                        toggleMusicWithFade(true);
+                    } else {
+                        toggleMusicWithFade(false);
+                    }
+                } else {
+                    // Optionally handle the "no music loaded" case
+                    // e.g., loadAndPlayMusic(currentTrackIndex);
+                }
+                buttonHandled = true;
             }
+        } else {
+            buttonHandled = false; // Reset when button is released
         }
     }
 
@@ -379,6 +438,7 @@ void init() {
         printf("No music files found!\n");
         exit(1);
     }
+    printf("Found %d music files\n", trackCount);
 
     // Set shuffle
     if (SHUFFLE) {
@@ -424,20 +484,20 @@ int main() {
             handleKeyboardInput(&e);
         }
         handleGamepadInput();
-        if (PLAY_MUSIC_INGAME) {
-            Mix_VolumeMusic(INGAME_VOL);  // Set volume to INGAME_VOL
-        } else {
-            // If PLAY_MUSIC_INGAME is 0 then we pause music if application is running, demo is WhatsApp
-            if (isApplicationOpen("WhatsApp")) {
-                if (Mix_PlayingMusic()) {
-                    Mix_PauseMusic();
-                }
-            } else {
-                if (Mix_PausedMusic()) {
-                    Mix_ResumeMusic();
-                }
-            }
-        }
+        // if (PLAY_MUSIC_INGAME) {
+        //     Mix_VolumeMusic(INGAME_VOL);  // Set volume to INGAME_VOL
+        // } else {
+        //     // If PLAY_MUSIC_INGAME is 0 then we pause music if application is running, demo is WhatsApp
+        //     if (isApplicationOpen("WhatsApp")) {
+        //         if (Mix_PlayingMusic()) {
+        //             Mix_PauseMusic();
+        //         }
+        //     } else {
+        //         if (Mix_PausedMusic()) {
+        //             Mix_ResumeMusic();
+        //         }
+        //     }
+        // }
     }
 
     cleanup();
