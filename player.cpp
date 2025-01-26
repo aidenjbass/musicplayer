@@ -362,9 +362,10 @@ void handleKeyboardInput(SDL_Event *event) {
     }
 }
 
+// Function to handle gamepad input
 void handleGamepadInput() {
     if (!gamepad) { return; }
-        int deadzone = 16000; // Set the deadzone, -32000,32000 is max
+    int deadzone = 16000; // Set the deadzone, -32000,32000 is max
 
     // GAMEPAD_CONTROL_FULL: Right Stick X-axis for Next/Prev, Y-axis for Volume, Right Stick Click for Pause
     if (GAMEPAD_CONTROL_FULL) {
@@ -374,7 +375,7 @@ void handleGamepadInput() {
         if (!axisRightXHandled && rightX > deadzone) {
             currentTrackIndex = (currentTrackIndex + 1) % trackCount;
             loadAndPlayMusic(currentTrackIndex);
-            axisRightXHandled = true; // Prevent repeated triggering
+            axisRightXHandled = true;
         } else if (!axisRightXHandled && rightX < -deadzone) {
             currentTrackIndex = (currentTrackIndex - 1 + trackCount) % trackCount;
             loadAndPlayMusic(currentTrackIndex);
@@ -389,11 +390,13 @@ void handleGamepadInput() {
         int volumeIncrement = 5;
         int currentVolume = Mix_VolumeMusic(-1);
         if (!axisRightYHandled && rightY < -deadzone) {
+            // Right stick Y+
             currentVolume += volumeIncrement;
             if (currentVolume > 128) currentVolume = 128;
             Mix_VolumeMusic(currentVolume);
             axisRightYHandled = true;
         } else if (!axisRightYHandled && rightY > deadzone) {
+            // Right stick Y-
             currentVolume -= volumeIncrement;
             if (currentVolume < 0) currentVolume = 0;
             Mix_VolumeMusic(currentVolume);
@@ -405,7 +408,7 @@ void handleGamepadInput() {
         // Play/Pause toggle (Right Stick Button)
         static bool buttonHandled = false;
         if (SDL_GameControllerGetButton(gamepad, SDL_CONTROLLER_BUTTON_RIGHTSTICK)) {
-            if (!buttonHandled) { // Trigger only on initial press
+            if (!buttonHandled) {
                 if (Mix_PlayingMusic()) {
                     if (Mix_PausedMusic()) {
                         toggleMusicWithFade(true);
@@ -414,7 +417,6 @@ void handleGamepadInput() {
                     }
                 } else {
                     // Optionally handle the "no music loaded" case
-                    // e.g., loadAndPlayMusic(currentTrackIndex);
                 }
                 buttonHandled = true;
             }
@@ -431,7 +433,7 @@ void handleGamepadInput() {
         if (!axisRightXHandled && rightX > deadzone) {
             currentTrackIndex = (currentTrackIndex + 1) % trackCount;
             loadAndPlayMusic(currentTrackIndex);
-            axisRightXHandled = true; // Prevent repeated triggering
+            axisRightXHandled = true;
         } else if (!axisRightXHandled && rightX < -deadzone) {
             currentTrackIndex = (currentTrackIndex - 1 + trackCount) % trackCount;
             loadAndPlayMusic(currentTrackIndex);
@@ -445,7 +447,7 @@ void handleGamepadInput() {
     if (GAMEPAD_CONTROL_PAUSE) {
         static bool buttonHandled = false;
         if (SDL_GameControllerGetButton(gamepad, SDL_CONTROLLER_BUTTON_RIGHTSTICK)) {
-            if (!buttonHandled) { // Trigger only on initial press
+            if (!buttonHandled) {
                 if (Mix_PlayingMusic()) {
                     if (Mix_PausedMusic()) {
                         toggleMusicWithFade(true);
@@ -454,7 +456,6 @@ void handleGamepadInput() {
                     }
                 } else {
                     // Optionally handle the "no music loaded" case
-                    // e.g., loadAndPlayMusic(currentTrackIndex);
                 }
                 buttonHandled = true;
             }
@@ -538,9 +539,12 @@ void init() {
 }
 
 void cleanup() {
-    // Free resources
+    SDL_GameControllerClose(gamepad);
+    Mix_CloseAudio();
+    Mix_Quit();
     SDL_Quit();
 }
+
 
 int main() {
     if (loadSettingsFromFile(INI_PATH) != 0) {
